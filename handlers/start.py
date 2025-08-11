@@ -1,6 +1,6 @@
 # handlers/start.py
 from telebot import types
-from templates.keyboards import main_menu
+from keyboards import main_menu
 
 START_TEXT = ("Welcome To Aizen Bot ⚡️\n\n"
               "Please Use this /redeem Command For Get Prime video 🧑‍💻\n"
