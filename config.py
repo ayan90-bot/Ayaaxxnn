@@ -3,10 +3,10 @@ import os
 from datetime import timedelta
 
 # Telegram bot token
-BOT_TOKEN = os.getenv("BOT_TOKEN", "REPLACE_WITH_YOUR_BOT_TOKEN")
+BOT_TOKEN = os.getenv("8432298627:AAFMs_bn-x1S9ZrTSOICLiSxfCBQtBHHZfw", "REPLACE_WITH_YOUR_BOT_TOKEN")
 
 # Admin IDs (list of ints). Replace with your Telegram user id(s)
-ADMIN_IDS = [123456789]  # <-- put your telegram id(s) here
+ADMIN_IDS = [6324825537]  # <-- put your telegram id(s) here
 
 # Default directory for data (relative)
 DATA_DIR = "data"
