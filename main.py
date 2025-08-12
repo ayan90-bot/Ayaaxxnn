@@ -1,69 +1,45 @@
-import sys
 import os
-sys.path.append(os.path.dirname(__file__))
-# main.py
 import telebot
-from flask import Flask
-import threading
-import time
-import os
-from config import BOT_TOKEN, ADMIN_IDS, DATA_DIR
-from handlers.start import register_start
-from handlers.redeem import register_redeem
-from handlers.premium import register_premium
-from handlers.admin import register_admin
-from templates.keyboards import main_menu
-from utils.storage import read_json, write_json
-from utils.notify import notify_admins
+from telebot import types
 
-# Setup simple global state
-global_state = {
-    "free_access": False
-}
+# ================= CONFIG =================
+BOT_TOKEN = os.environ.get("BOT_TOKEN") or "8432298627:AAFMs_bn-x1S9ZrTSOICLiSxfCBQtBHHZfw"
+ADMIN_IDS = os.environ.get("ADMIN_IDS", "6324825537").split(",")
+DATA_DIR = os.environ.get("DATA_DIR", "data")
 
-# ensure data dir exists and json files
-os.makedirs(DATA_DIR, exist_ok=True)
-users_path = os.path.join(DATA_DIR, "users.json")
-keys_path = os.path.join(DATA_DIR, "keys.json")
-# initialize if needed
-from utils.storage import _ensure_file
-_try_default = {}
-_ensure_file(users_path, {})
-_ensure_file(keys_path, {})
+if not BOT_TOKEN or BOT_TOKEN == "PUT_YOUR_BOT_TOKEN_HERE":
+    raise ValueError("❌ Please set BOT_TOKEN in Render environment variables or in main.py directly.")
 
-if BOT_TOKEN == "REPLACE_WITH_YOUR_BOT_TOKEN" or not BOT_TOKEN:
-    raise SystemExit("Please set BOT_TOKEN in config.py or environment variable.")
-
+# ================= INIT BOT =================
 bot = telebot.TeleBot(BOT_TOKEN, parse_mode="HTML")
 
-# register handlers
-register_start(bot)
-register_redeem(bot, ADMIN_IDS, global_state)
-register_premium(bot, ADMIN_IDS)
-register_admin(bot, global_state)
+# ================= COMMAND HANDLERS =================
+@bot.message_handler(commands=["start"])
+def start_command(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add(types.KeyboardButton("Option 1"), types.KeyboardButton("Option 2"))
+    bot.send_message(message.chat.id, "✅ Bot is running!\nChoose an option below:", reply_markup=markup)
 
-# small health-check Flask app (we won't use webhook)
-app = Flask(__name__)
+@bot.message_handler(func=lambda msg: msg.text == "Option 1")
+def handle_option1(message):
+    bot.send_message(message.chat.id, "You selected Option 1 ✅")
 
-@app.route("/")
-def home():
-    return "AizenBot Running (polling mode)"
+@bot.message_handler(func=lambda msg: msg.text == "Option 2")
+def handle_option2(message):
+    bot.send_message(message.chat.id, "You selected Option 2 ✅")
 
-def run_flask():
-    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 10000)))
+# ================= ADMIN TEST =================
+@bot.message_handler(commands=["admin"])
+def admin_check(message):
+    if str(message.chat.id) in ADMIN_IDS:
+        bot.send_message(message.chat.id, "👑 You are an admin.")
+    else:
+        bot.send_message(message.chat.id, "❌ You are not an admin.")
 
-def run_polling():
-    while True:
-        try:
-            bot.infinity_polling(timeout=60, long_polling_timeout=90)
-        except Exception as e:
-            print("Polling error, retrying in 5s:", e)
-            time.sleep(5)
-
+# ================= START BOT =================
 if __name__ == "__main__":
-    t1 = threading.Thread(target=run_flask)
-    t1.daemon = True
-    t1.start()
-
-    print("Starting bot polling...")
-    run_polling()
+    print("🚀 Bot is starting...")
+    try:
+        bot.infinity_polling(timeout=60, long_polling_timeout=30)
+    except Exception as e:
+        print(f"❌ Error: {e}")
